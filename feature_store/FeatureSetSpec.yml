@@ -1,0 +1,45 @@
+source:
+  type: parquet
+  path: <PASTE_MERGED_DATASET_URI_HERE>
+
+index_columns:
+  - name: asin
+    type: string
+  - name: reviewerID
+    type: string
+
+features:
+  # ---- Length features ----
+  - name: review_length_words
+    type: integer
+  - name: review_length_chars
+    type: integer
+
+  # ---- Sentiment features ----
+  - name: sentiment_pos
+    type: float
+  - name: sentiment_neg
+    type: float
+  - name: sentiment_neu
+    type: float
+  - name: sentiment_compound
+    type: float
+
+  # ---- TF-IDF features (placeholder; will be expanded) ----
+  # Example format:
+  # - name: tfidf_word
+  #   type: float
+  - name: <TFIDF_FEATURES_WILL_GO_HERE>
+    type: float
+
+  # ---- SBERT embedding features (placeholder; will be expanded) ----
+  # Example format:
+  # - name: sbert_0
+  #   type: float
+  - name: <SBERT_FEATURES_WILL_GO_HERE>
+    type: float
+
+
+
+
+    
