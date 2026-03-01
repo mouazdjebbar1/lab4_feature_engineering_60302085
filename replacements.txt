@@ -1,0 +1,3 @@
+# Replace the exact leaked key string with REDACTED.
+# Put the EXACT key you had here on the left side.
+<PASTE_THE_EXACT_KEY_HERE>==>REDACTED
