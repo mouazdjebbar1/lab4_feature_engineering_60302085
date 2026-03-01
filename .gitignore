@@ -1,0 +1,4 @@
+
+# ignore downloaded outputs
+feature_store/merge_out/
+*.parquet
