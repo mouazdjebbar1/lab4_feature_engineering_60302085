@@ -1,0 +1,86 @@
+## 📊 Results and Proof of Work
+
+This section provides evidence of the completed tasks, including hyperparameter tuning, model training, deployment, and endpoint testing.
+
+---
+
+### 🔹 Sweep Job (Hyperparameter Tuning)
+
+The sweep job was successfully completed, and Azure ML automatically selected the best run based on validation accuracy.
+
+- Best hyperparameters found:
+  - C: 0.9121
+  - max_iter: 1500
+
+![Sweep Job Best Run](./images/sweap_job.png)
+
+---
+
+### 🔹 Best Run Details
+
+The best run includes the selected hyperparameters and final evaluation metrics.
+
+- Test Accuracy: 0.8560  
+- Test AUC: 0.8816  
+- Test F1 Score: 0.9133  
+
+![Best Run Details](./images/best hyperparm.png)
+
+---
+
+### 🔹 Final Model Training
+
+The final model was retrained using the best hyperparameters obtained from the sweep job.
+
+![Final Training Job](./images/final_model.png)
+
+---
+
+### 🔹 Registered Model
+
+The trained model was successfully registered in Azure ML.
+
+- Model name: `amazon-review-sentiment-model`
+- Version: 1
+
+![Registered Model](./images/model.png)
+
+---
+
+### 🔹 Endpoint Deployment
+
+The model was deployed as a real-time online endpoint.
+
+- Endpoint name: `amazon-review-endpoint`
+- Status: Healthy
+- Traffic: 100% assigned to deployment
+
+![Endpoint Status](./images/endpoint+health.png)
+
+---
+
+### 🔹 Endpoint Invocation (Testing)
+
+The deployed endpoint was tested using `invoke_endpoint.py`.
+
+- Status Code: 200 (Success)
+- Predictions returned correctly
+
+Example output:
+{"predictions": [0, 1, 1, 1, 0]}
+
+
+
+![Endpoint Invocation](./images/invoke_status.png)
+
+---
+
+## ✅ Summary
+
+- Sweep job successfully identified best hyperparameters  
+- Final model retrained using optimal values  
+- Model registered in Azure ML  
+- Endpoint deployed and running successfully  
+- Endpoint tested with real predictions  
+
+This confirms that the full ML pipeline (training → tuning → deployment → inference) is working correctly.
