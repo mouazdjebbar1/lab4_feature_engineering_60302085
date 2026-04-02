@@ -22,10 +22,17 @@ from sklearn.metrics import (
 # --------------------------------------------------
 def parse_args():
     parser = argparse.ArgumentParser()
+
+    # Data inputs
     parser.add_argument("--train_data", type=str, required=True)
     parser.add_argument("--val_data", type=str, required=True)
     parser.add_argument("--test_data", type=str, required=True)
     parser.add_argument("--output", type=str, required=True)
+
+    # Hyperparameters (updated from BEST sweep run)
+    parser.add_argument("--C", type=float, default=0.9121044616029719)
+    parser.add_argument("--max_iter", type=int, default=1500)
+
     return parser.parse_args()
 
 
@@ -67,26 +74,20 @@ def build_features(df):
     for col in df.columns:
         lower = col.lower()
 
-        # remove exact columns
         if col in excluded_exact:
             continue
 
-        # remove anything leaking target
         if "overall" in lower:
             continue
 
-        # remove text columns
         if any(x in lower for x in ["reviewtext", "summary", "title", "time", "helpful"]):
             continue
 
-        # keep only numeric
         if pd.api.types.is_numeric_dtype(df[col]):
             feature_cols.append(col)
 
     if not feature_cols:
         raise RuntimeError("No usable features found.")
-
-    print("FINAL FEATURES USED:", feature_cols[:20], "...")
 
     X = df[feature_cols].copy().fillna(0)
     return X
@@ -126,8 +127,6 @@ def main():
     train_df = load_data(args.train_data)
     val_df = load_data(args.val_data)
     test_df = load_data(args.test_data)
-    print("TRAIN COLUMNS:")
-    print(train_df.columns.tolist())
 
     print("Creating labels...")
     train_df = create_labels(train_df)
@@ -150,12 +149,17 @@ def main():
     print("Logging parameters...")
     mlflow.log_param("model_name", "LogisticRegression")
     mlflow.log_param("label_rule", "overall >= 4")
-    mlflow.log_param("max_iter", 1000)
     mlflow.log_param("random_state", 42)
     mlflow.log_param("num_features", X_train.shape[1])
+    mlflow.log_param("C", args.C)
+    mlflow.log_param("max_iter", args.max_iter)
 
     print("Training model...")
-    model = LogisticRegression(max_iter=1000, random_state=42)
+    model = LogisticRegression(
+        C=args.C,
+        max_iter=args.max_iter,
+        random_state=42
+    )
     model.fit(X_train, y_train)
 
     print("Evaluating...")
