@@ -16,12 +16,15 @@ jobs:
     inputs:
       data: ${{parent.inputs.sampled_data}}
       seed: 42
-      train_ratio: 0.7
+      train_ratio: 0.60
       val_ratio: 0.15
+      test_ratio: 0.15
+      deploy_ratio: 0.10
     outputs:
       train: {}
       val: {}
       test: {}
+      deploy: {}
 
   normalize_train:
     type: command
@@ -47,7 +50,14 @@ jobs:
     outputs:
       out: {}
 
-  # ---- Length features (train/val/test) ----
+  normalize_deploy:
+    type: command
+    component: azureml:normalize_text@latest
+    inputs:
+      data: ${{parent.jobs.split.outputs.deploy}}
+    outputs:
+      out: {}
+
   length_train:
     type: command
     component: azureml:review_length_features@latest
@@ -75,7 +85,15 @@ jobs:
     outputs:
       out: {}
 
-  # ---- Sentiment features (train/val/test) ----
+  length_deploy:
+    type: command
+    component: azureml:review_length_features@latest
+    inputs:
+      data: ${{parent.jobs.normalize_deploy.outputs.out}}
+      text_col: reviewText
+    outputs:
+      out: {}
+
   sentiment_train:
     type: command
     component: azureml:vader_sentiment_features@latest
@@ -103,7 +121,15 @@ jobs:
     outputs:
       out: {}
 
-  # ---- TF-IDF: fit on TRAIN only, then transform train/val/test ----
+  sentiment_deploy:
+    type: command
+    component: azureml:vader_sentiment_features@latest
+    inputs:
+      data: ${{parent.jobs.normalize_deploy.outputs.out}}
+      text_col: reviewText
+    outputs:
+      out: {}
+
   tfidf_fit_train:
     type: command
     component: azureml:tfidf_fit@latest
@@ -145,7 +171,16 @@ jobs:
     outputs:
       out: {}
 
-  # ---- SBERT embeddings (train/val/test) ----
+  tfidf_deploy:
+    type: command
+    component: azureml:tfidf_transform@latest
+    inputs:
+      data: ${{parent.jobs.normalize_deploy.outputs.out}}
+      model_dir: ${{parent.jobs.tfidf_fit_train.outputs.model_out}}
+      text_col: reviewText
+    outputs:
+      out: {}
+
   sbert_train:
     type: command
     component: azureml:sbert_embeddings@latest
@@ -173,7 +208,15 @@ jobs:
     outputs:
       out: {}
 
-  # ---- Merge all features (train/val/test) ----
+  sbert_deploy:
+    type: command
+    component: azureml:sbert_embeddings@latest
+    inputs:
+      data: ${{parent.jobs.normalize_deploy.outputs.out}}
+      text_col: reviewText
+    outputs:
+      out: {}
+
   merge_train:
     type: command
     component: azureml:merge_features@latest
@@ -211,6 +254,20 @@ jobs:
       sentiment: ${{parent.jobs.sentiment_test.outputs.out}}
       tfidf: ${{parent.jobs.tfidf_test.outputs.out}}
       sbert: ${{parent.jobs.sbert_test.outputs.out}}
+      key1: asin
+      key2: reviewerID
+    outputs:
+      out: {}
+
+  merge_deploy:
+    type: command
+    component: azureml:merge_features@latest
+    inputs:
+      base: ${{parent.jobs.normalize_deploy.outputs.out}}
+      length: ${{parent.jobs.length_deploy.outputs.out}}
+      sentiment: ${{parent.jobs.sentiment_deploy.outputs.out}}
+      tfidf: ${{parent.jobs.tfidf_deploy.outputs.out}}
+      sbert: ${{parent.jobs.sbert_deploy.outputs.out}}
       key1: asin
       key2: reviewerID
     outputs:
